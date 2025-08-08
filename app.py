@@ -11,7 +11,7 @@ from services import (
     generate_hd_image,
     erase_foreground
 )
-from PIL import Image
+from PIL import Image, ImageFilter
 import io
 import requests
 import json
@@ -30,15 +30,7 @@ st.set_page_config(
 )
 
 # Load environment variables
-print("Loading environment variables...")
-load_dotenv(verbose=True)  # Add verbose=True to see loading details
-
-# Debug: Print environment variable status
-api_key = os.getenv("BRIA_API_KEY")
-print(f"API Key present: {bool(api_key)}")
-print(f"API Key value: {api_key if api_key else 'Not found'}")
-print(f"Current working directory: {os.getcwd()}")
-print(f".env file exists: {os.path.exists('.env')}")
+load_dotenv()
 
 def initialize_session_state():
     """Initialize session state variables."""
@@ -88,7 +80,7 @@ def apply_image_filter(image, filter_type):
         elif filter_type == "High Contrast":
             return img.point(lambda x: x * 1.5)
         elif filter_type == "Blur":
-            return img.filter(Image.BLUR)
+            return img.filter(ImageFilter.BLUR)
         else:
             return img
     except Exception as e:
@@ -140,13 +132,6 @@ def main():
     st.title("AdSnap Studio")
     initialize_session_state()
     
-    # Sidebar for API key
-    with st.sidebar:
-        st.header("Settings")
-        api_key = st.text_input("Enter your API key:", value=st.session_state.api_key if st.session_state.api_key else "", type="password")
-        if api_key:
-            st.session_state.api_key = api_key
-
     # Main tabs
     tabs = st.tabs([
         "🎨 Generate Image",
@@ -219,7 +204,7 @@ def main():
         # Generate button
         if st.button("🎨 Generate Images", type="primary"):
             if not st.session_state.api_key:
-                st.error("Please enter your API key in the sidebar.")
+                st.error("API key not found. Set the BRIA_API_KEY environment variable.")
                 return
                 
             with st.spinner("🎨 Generating your masterpiece..."):
